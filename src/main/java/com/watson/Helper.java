@@ -10,9 +10,8 @@ package com.watson;
 
 import java.io.File;
 
-import okhttp3.MultipartBody;
-import okhttp3.MultipartBody.Builder;
-import okhttp3.RequestBody;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import com.ibm.watson.developer_cloud.http.HttpMediaType;
 import com.ibm.watson.developer_cloud.http.RequestBuilder;
@@ -24,6 +23,10 @@ import com.ibm.watson.developer_cloud.visual_recognition.v3.model.ClassifierOpti
 import com.ibm.watson.developer_cloud.visual_recognition.v3.model.ClassifyImagesOptions;
 import com.ibm.watson.developer_cloud.visual_recognition.v3.model.VisualClassification;
 import com.ibm.watson.developer_cloud.visual_recognition.v3.model.VisualClassifier;
+
+import okhttp3.MultipartBody;
+import okhttp3.MultipartBody.Builder;
+import okhttp3.RequestBody;
 
 public class Helper extends VisualRecognition {
 	VisualRecognition service = new VisualRecognition(VisualRecognition.VERSION_DATE_2016_05_20);
@@ -55,12 +58,20 @@ public class Helper extends VisualRecognition {
 				.classifierIds(classifierId).images(new File(fileLocation)).build();
 		VisualClassification result = service.classify(options).execute();
 		System.out.println(result + "\n \n \n");
+		
+		 String classname=getImageClassName(result);
+		 System.out.println(classname);
+		
+	}
 
-		/*
-		 * JSONObject jsonObject=new JSONObject(result); JSONArray
-		 * jsonArray=jsonObject.getJSONArray("images"); JSONObject
-		 * jsonObject2=jsonArray.getJSONObject(0);
-		 */
+	private String getImageClassName(VisualClassification result) {
+		JSONObject jsonObject=new JSONObject(result); 
+		JSONArray jsonArray=jsonObject.getJSONArray("images"); 
+		JSONObject jsonObject2=jsonArray.getJSONObject(0);
+		JSONArray jsonArray2 =jsonObject2.getJSONArray("classifiers");
+		JSONObject jsonObject4 =jsonArray2.getJSONObject(0);
+		return (String) jsonObject4.get("class");
+		 
 	}
 
 	public void trainWatson(String versionDate,String classifierName,String negativeFilelocation, String[] positiveFileLocations, String[] positiveFileNames) {
