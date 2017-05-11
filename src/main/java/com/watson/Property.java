@@ -48,8 +48,22 @@ public class Property {
 		return properties.getProperty("imageToClassify");
 	}
 
+	public static String getSourceZipLocation() {
+
+		return properties.getProperty("sourceZipLocation");
+	}
+	
+	public static String getSourceZipName() {
+
+		return properties.getProperty("sourceZipName");
+	}
 	public static String getApiKey() {
 
 		return properties.getProperty("apiKey");
 	}
+	public static String getDestinationUnzipLocation() {
+
+		return properties.getProperty("destinationUnzipLocation");
+	}
+	
 }

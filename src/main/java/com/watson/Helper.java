@@ -10,6 +10,9 @@ package com.watson;
 
 import java.io.File;
 
+import javax.print.DocFlavor.STRING;
+
+import org.apache.commons.io.FileUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -24,6 +27,8 @@ import com.ibm.watson.developer_cloud.visual_recognition.v3.model.ClassifyImages
 import com.ibm.watson.developer_cloud.visual_recognition.v3.model.VisualClassification;
 import com.ibm.watson.developer_cloud.visual_recognition.v3.model.VisualClassifier;
 
+import net.lingala.zip4j.core.ZipFile;
+import net.lingala.zip4j.exception.ZipException;
 import okhttp3.MultipartBody;
 import okhttp3.MultipartBody.Builder;
 import okhttp3.RequestBody;
@@ -49,7 +54,7 @@ public class Helper extends VisualRecognition {
 		return serviceCall;
 	}
 
-	public void classifyAnImage(String apiKey, String fileLocation, String classifierId,
+	public ImageClassifierBean classifyAnImage(String apiKey, String fileLocation, String classifierId,
 			String versionDate) {
 		VisualRecognition service = new VisualRecognition(versionDate);
 		service.setApiKey(apiKey);
@@ -59,18 +64,27 @@ public class Helper extends VisualRecognition {
 		VisualClassification result = service.classify(options).execute();
 		System.out.println(result + "\n \n \n");
 		
-		 String classname=getImageClassName(result);
-		 System.out.println(classname);
-		
+		ImageClassifierBean imageClassifierBean=getImageClassName(result);
+		return imageClassifierBean;
 	}
 
-	private String getImageClassName(VisualClassification result) {
+	private ImageClassifierBean getImageClassName(VisualClassification result) {
+		 ImageClassifierBean imageClassifierBean=new ImageClassifierBean();  
+
 		JSONObject jsonObject=new JSONObject(result); 
 		JSONArray jsonArray=jsonObject.getJSONArray("images"); 
 		JSONObject jsonObject2=jsonArray.getJSONObject(0);
 		JSONArray jsonArray2 =jsonObject2.getJSONArray("classifiers");
+		if(jsonArray2.length()!=0){
 		JSONObject jsonObject4 =jsonArray2.getJSONObject(0);
-		return (String) jsonObject4.get("class");
+		JSONArray jsonArray3=jsonObject4.getJSONArray("classes");
+		imageClassifierBean.setClassName(jsonArray3.getJSONObject(0).getString("name").toString());
+		imageClassifierBean.setFileName(jsonObject2.getString("image"));
+		}else{
+			imageClassifierBean.setClassName("Unidentified Document");
+			imageClassifierBean.setFileName(jsonObject2.getString("image"));
+		}
+		return imageClassifierBean;
 		 
 	}
 
@@ -117,6 +131,19 @@ public class Helper extends VisualRecognition {
 		System.out.println(serviceCall.execute());
 	}
 
+	public String unzipFiles(String sourceZipLocation, String sourceZipName, String destinationUnzipLocation) {
+
+		ZipFile file;
+		try {
+			file = new ZipFile(sourceZipLocation+sourceZipName);
+			file.extractAll(destinationUnzipLocation);
+		} catch (ZipException e) {
+			e.printStackTrace();
+		}
+		return destinationUnzipLocation+sourceZipName.substring(0, sourceZipName.length()-4);
+	}
+	
+	
 	private static final String PARAM_NAME = "name";
 	private static final String PARAM_NEGATIVE_EXAMPLES = "negative_examples";
 	private static final String PARAM_POSITIVE_EXAMPLES = "positive_examples";
